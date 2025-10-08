@@ -1,0 +1,15 @@
+{
+  "numberOfProgrammers": 7,
+  "numberOfWaiters": 2,
+  "totalFoodPortions": 1000000,
+  "programmerProperties": {
+    "minEatingTime": 200,
+    "maxEatingTime": 250,
+    "minChitChatTime": 50,
+    "maxChitChatTime": 60
+  },
+  "waiterProperties": {
+    "minServingTime": 200,
+    "maxServingTime": 250
+  }
+}

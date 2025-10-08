@@ -1,22 +1,14 @@
 package org.labs;
 
-import java.util.ArrayList;
-import java.util.List;
-import java.util.concurrent.ExecutorService;
-import java.util.concurrent.Executors;
-import java.util.concurrent.PriorityBlockingQueue;
-import java.util.concurrent.TimeUnit;
-
 import org.labs.configuration.ConfigLoader;
 import org.labs.configuration.SimulationConfig;
-import org.labs.model.Plate;
-import org.labs.model.Programmer;
-import org.labs.model.Restaurant;
-import org.labs.model.Spoon;
-import org.labs.model.Waiter;
+import org.labs.simulation.Simulation;
 import org.labs.statistics.SimulationStatistics;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+
+import static org.labs.simulation.SimulationUtils.createSimulation;
+import static org.labs.simulation.SimulationUtils.runSimulation;
 
 public class Main {
     private static final Logger logger = LoggerFactory.getLogger(Main.class);
@@ -30,104 +22,11 @@ public class Main {
 
             Simulation simulation = createSimulation(config);
 
-            runSimulation(simulation, config);
+            SimulationStatistics statistics = runSimulation(simulation, config);
+            statistics.printFinalStatistics(simulation.plates());
         } catch (Exception e) {
             logger.error("Simulation failed", e);
             System.exit(1);
         }
-    }
-
-    private static Simulation createSimulation(SimulationConfig config) {
-        PriorityBlockingQueue<Plate> platesToServe = new PriorityBlockingQueue<>();
-
-        Restaurant restaurant = new Restaurant(platesToServe, config.totalFoodPortions());
-
-        List<Spoon> spoons = new ArrayList<>();
-        for (int i = 0; i < config.numberOfProgrammers(); i++) {
-            spoons.add(new Spoon(i));
-        }
-
-        List<Plate> plates = new ArrayList<>();
-        List<Programmer> programmers = new ArrayList<>();
-
-        for (int i = 0; i < config.numberOfProgrammers(); i++) {
-            Plate plate = new Plate(i);
-            plates.add(plate);
-
-            Spoon leftSpoon = spoons.get(i);
-            Spoon rightSpoon = spoons.get((i + 1) % config.numberOfProgrammers());
-            Spoon smallerSpoon = leftSpoon.getId() < rightSpoon.getId() ? leftSpoon : rightSpoon;
-            Spoon biggerSpoon = leftSpoon.getId() > rightSpoon.getId() ? leftSpoon : rightSpoon;
-
-            Programmer programmer = new Programmer(
-                    config.programmerProperties(),
-                    restaurant,
-                    plate,
-                    smallerSpoon,
-                    biggerSpoon,
-                    i
-            );
-            programmers.add(programmer);
-        }
-
-        List<Waiter> waiters = new ArrayList<>();
-        for (int i = 0; i < config.numberOfWaiters(); i++) {
-            Waiter waiter = new Waiter(config.waiterProperties(), restaurant, i);
-            waiters.add(waiter);
-        }
-
-        return new Simulation(restaurant, programmers, waiters, plates);
-    }
-
-    private static void runSimulation(Simulation simulation, SimulationConfig config) throws InterruptedException {
-        try (
-                ExecutorService programmerPool = Executors.newVirtualThreadPerTaskExecutor();
-                ExecutorService waiterPool = Executors.newVirtualThreadPerTaskExecutor();
-        ) {
-            SimulationStatistics statistics = new SimulationStatistics();
-
-            logger.info(
-                    "Starting simulation with [{}] programmers and [{}] waiters",
-                    config.numberOfProgrammers(),
-                    config.numberOfWaiters()
-            );
-
-            try {
-                for (Programmer programmer : simulation.programmers) {
-                    programmerPool.submit(programmer);
-                }
-                for (Waiter waiter : simulation.waiters) {
-                    waiterPool.submit(waiter);
-                }
-            } finally {
-                programmerPool.shutdown();
-                waiterPool.shutdown();
-
-                while (!programmerPool.awaitTermination(5, TimeUnit.SECONDS)) {
-                    logger.warn("Waiting for programmers pool to terminate");
-                }
-
-                while (!waiterPool.awaitTermination(5, TimeUnit.SECONDS)) {
-                    logger.warn("Waiting for waiters pool to terminate");
-                }
-            }
-
-            statistics.printFinalStatistics(simulation.plates);
-
-            int totalRefills = simulation.plates.stream()
-                    .mapToInt(Plate::getNumOfRefills)
-                    .sum();
-
-            logger.info("Total refills from plates: {}", totalRefills);
-            logger.info("Simulation completed successfully!");
-        }
-    }
-
-    private record Simulation(
-            Restaurant restaurant,
-            List<Programmer> programmers,
-            List<Waiter> waiters,
-            List<Plate> plates
-    ) {
     }
 }

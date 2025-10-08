@@ -51,6 +51,7 @@ public class SimulationStatistics {
         int difference = maxPortions - minPortions;
 
         logger.info("=== FAIRNESS ANALYSIS ===");
+        logger.info("Total refills from plates: {}", totalRefills);
         logger.info("Min portions eaten: {}", minPortions);
         logger.info("Max portions eaten: {}", maxPortions);
         logger.info("Difference: {} portions", difference);

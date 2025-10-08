@@ -3,7 +3,11 @@ package org.labs.model;
 import java.util.concurrent.PriorityBlockingQueue;
 import java.util.concurrent.atomic.AtomicInteger;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
 public class Restaurant {
+    private final Logger log = LoggerFactory.getLogger(Restaurant.class);
     private final PriorityBlockingQueue<Plate> platesToServe;
     private final AtomicInteger portionsLeft;
 
@@ -15,6 +19,8 @@ public class Restaurant {
     public void makeOrder(Plate plate) {
         if (plate.getState() == PlateState.EMPTY) {
             plate.order();
+            log.info("Programmer with id [{}] ordered new portion", plate.getProgrammerId());
+
             platesToServe.add(plate);
         }
     }

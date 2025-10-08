@@ -6,14 +6,24 @@ import java.util.concurrent.atomic.AtomicReference;
 public class Plate implements Comparable<Plate> {
     private final AtomicReference<PlateState> plateState;
     private final AtomicInteger numOfRefills;
+    private final int programmerId;
 
-    public Plate() {
+    public Plate(int programmerId) {
+        this.programmerId = programmerId;
         this.plateState = new AtomicReference<>(PlateState.EMPTY);
         this.numOfRefills = new AtomicInteger(0);
     }
 
     public PlateState getState() {
         return plateState.get();
+    }
+
+    public int getNumOfRefills() {
+        return numOfRefills.get();
+    }
+
+    public int getProgrammerId() {
+        return programmerId;
     }
 
     public void refill() {

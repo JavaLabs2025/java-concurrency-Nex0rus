@@ -56,7 +56,7 @@ public class SimulationStatistics {
         logger.info("Max portions eaten: {}", maxPortions);
         logger.info("Difference: {} portions", difference);
         logger.info(
-                "Fairness ratio: {:.2f}%",
+                "Fairness ratio: {}%",
                 minPortions > 0 ? (double) minPortions / maxPortions * 100 : 0
         );
     }

@@ -69,8 +69,10 @@ public class SimulationUtils {
         try (
                 ExecutorService programmerPool = Executors.newVirtualThreadPerTaskExecutor();
                 ExecutorService waiterPool = Executors.newVirtualThreadPerTaskExecutor();
+//                ExecutorService programmerPool = Executors.newFixedThreadPool(config.numberOfProgrammers());
+//                ExecutorService waiterPool = Executors.newFixedThreadPool(config.numberOfProgrammers())
         ) {
-            SimulationStatistics statistics = new SimulationStatistics();
+            long startTime = System.currentTimeMillis();
 
             log.info(
                     "Starting simulation with [{}] programmers and [{}] waiters",
@@ -98,7 +100,7 @@ public class SimulationUtils {
                 }
             }
 
-            return statistics;
+            return new SimulationStatistics(startTime, simulation.plates());
         }
     }
 }
